@@ -117,7 +117,7 @@ watch(
 <template>
   <main class="max-w-2xl mx-auto p-6">
     <header class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold">Test CYA</h1>
+      <h1 class="text-2xl font-semibold">CYOA</h1>
       <div class="flex gap-2">
         <Toast class="!w-2/3" />
         <Button icon="pi pi-box" @click="showInventory = true" />
