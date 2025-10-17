@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 * {
-  font-family: 'EB Garamond', serif;
+  font-family: 'Inter', sans-serif;
+  /* font-family: 'EB Garamond', serif; */
   /* font-family: 'Playwrite DE SAS', 'cursive'; */
 }

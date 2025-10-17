@@ -4,6 +4,7 @@ export default {
     extend: {
       fontFamily: {
         serif: ['EB Garamond', 'serif'],
+        sans: ['Inter', 'sans-serif'],
       },
     },
   },

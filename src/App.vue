@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const showCountdown = ref(true)
+const showCountdown = ref(false)
 const endDate = new Date('2025-10-30T09:00:00') // Date de fin du compte à rebours
 const timeRemaining = ref(0)
 const days = ref(0)
