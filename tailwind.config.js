@@ -1,7 +1,11 @@
 export default {
-  content: ["./index.html", "./src/**/*.{vue,js,jsx,ts,tsx}"],
+  content: ['./index.html', './src/**/*.{vue,js,jsx,ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        serif: ['EB Garamond', 'serif'],
+      },
+    },
   },
   plugins: [],
-};
+}

@@ -116,18 +116,42 @@ watch(
 
 <template>
   <main class="max-w-2xl mx-auto p-6">
-    <header class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold">CYOA</h1>
-      <div class="flex gap-2">
-        <Toast class="!w-2/3" />
+    <header class="flex items-center justify-end mb-6">
+      <!-- <h1 class="text-2xl font-semibold">CYOA</h1> -->
+      <Toast class="!w-2/3" />
+      <Button icon="pi pi-moon" severity="contrast" />
+    </header>
+
+    <section class="bg-gray-100 rounded p-4 mb-4">
+      <p class="whitespace-pre-line" v-html="shownText"></p>
+    </section>
+
+    <ul class="space-y-2 pb-20">
+      <li v-for="(ch, idx) in visibleChoices" :key="idx">
+        <button
+          class="w-full text-left px-4 py-3 border rounded hover:bg-gray-50 disabled:opacity-50"
+          :disabled="typing || ch._enabled === false"
+          @click="pick(ch)"
+        >
+          {{ ch.text }}
+          <span v-if="ch._enabled === false" class="text-xs text-gray-500">(indisponible)</span>
+        </button>
+      </li>
+
+      <li v-if="currentNode.choices.length === 0">
+        <button class="px-4 py-3 border rounded" @click="restart">Fin — Rejouer</button>
+      </li>
+    </ul>
+
+    <div class="fixed bottom-0 px-6 py-4 bg-white w-full border-t -mx-6">
+      <div class="flex justify-between">
         <Button icon="pi pi-box" @click="showInventory = true" />
+        <Button icon="pi pi-refresh" @click="showRestartDialog = true" severity="contrast" />
 
         <!-- INVENTORY -->
         <Drawer v-model:visible="showInventory" header="Inventaire" position="bottom">
           <InventoryPanel />
         </Drawer>
-
-        <Button icon="pi pi-refresh" @click="showRestartDialog = true" severity="contrast" />
 
         <Dialog
           v-model:visible="showRestartDialog"
@@ -148,28 +172,7 @@ watch(
         </Dialog>
         <!-- <button class="px-3 py-1 border rounded" @click="load">Charger</button> -->
       </div>
-    </header>
-
-    <section class="bg-gray-100 rounded p-4 mb-4">
-      <p class="whitespace-pre-line" v-html="shownText"></p>
-    </section>
-
-    <ul class="space-y-2">
-      <li v-for="(ch, idx) in visibleChoices" :key="idx">
-        <button
-          class="w-full text-left px-4 py-3 border rounded hover:bg-gray-50 disabled:opacity-50"
-          :disabled="typing || ch._enabled === false"
-          @click="pick(ch)"
-        >
-          {{ ch.text }}
-          <span v-if="ch._enabled === false" class="text-xs text-gray-500">(indisponible)</span>
-        </button>
-      </li>
-
-      <li v-if="currentNode.choices.length === 0">
-        <button class="px-4 py-3 border rounded" @click="restart">Fin — Rejouer</button>
-      </li>
-    </ul>
+    </div>
 
     <!-- <aside class="mt-8 text-sm text-gray-600">
       <h2 class="font-medium mb-1">Variables (debug)</h2>

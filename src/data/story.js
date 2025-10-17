@@ -22,6 +22,14 @@ export const story = {
       id: 'wheatfield',
       text:
         "La chaleur du soleil <b>caresse</b> un champ de blé ondoyant. Tu te redresses, l'esprit brumeux. Dans ta main, un petit artéfact rouge pulse faiblement, comme un cœur lointain.\n\n" +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
+        'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.' +
         'Aucun souvenir. Seulement ton souffle, la mer d’épis dorés… et ce mystérieux objet.',
       choices: [
         {
