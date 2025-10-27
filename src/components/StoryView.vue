@@ -116,11 +116,11 @@ watch(
 
 <template>
   <main class="max-w-2xl mx-auto p-6">
-    <header class="flex items-center justify-end mb-6">
-      <!-- <h1 class="text-2xl font-semibold">CYOA</h1> -->
-      <Toast class="!w-2/3" />
+    <Toast class="!w-2/3" />
+    <!-- <header class="flex items-center justify-end mb-6">
+      <h1 class="text-2xl font-semibold">CYOA</h1>
       <Button icon="pi pi-moon" severity="contrast" />
-    </header>
+    </header> -->
 
     <section class="bg-gray-100 rounded p-4 mb-4">
       <p class="whitespace-pre-line" v-html="shownText"></p>
