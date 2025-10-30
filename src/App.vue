@@ -41,8 +41,11 @@ onUnmounted(() => {
 <template>
   <div v-if="showCountdown" class="flex justify-center items-center h-screen">
     <div>
-      <p class="text-xl text-center mb-8">Disponible dans</p>
-      <div v-if="timeRemaining > 0" class="flex gap-6">
+      <p class="text-xl text-center mb-8">
+        Si tu lis ce message, c'est que thomas n'a pas encore terminé.<br />Ce n'est pas de sa
+        faute, des gens lui prennent beaucoup de temps.<br /><br />Disponible : quand ça sera prêt
+      </p>
+      <!-- <div v-if="timeRemaining > 0" class="flex gap-6">
         <div class="flex flex-col space-y-2">
           <span class="text-center text-3xl font-medium">{{ days }}</span>
           <span>JOURS</span>
@@ -59,7 +62,7 @@ onUnmounted(() => {
           <span class="text-center text-3xl font-medium">{{ seconds }}</span>
           <span>SECONDES</span>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
   <router-view v-else />
