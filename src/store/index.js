@@ -48,7 +48,7 @@ function applyEffect(vars, e) {
     case 'set':
       out[e.var] = e.value
       break
-    case 'inc':
+    case 'add':
       out[e.var] = Number(current || 0) + 1
       break
     case 'dec':
@@ -80,6 +80,12 @@ export default createStore({
   },
   getters: {
     inventory: (state) => state.vars.inventory || [],
+    stats: (state) => ({
+      FOR: state.vars.FOR || 0,
+      DEX: state.vars.DEX || 0,
+      INT: state.vars.INT || 0,
+      HP: state.vars.HP || 10,
+    }),
     currentNode: (state) => story.nodes[state.currentNodeId],
     visibleChoices: (state, getters) => {
       const node = getters.currentNode

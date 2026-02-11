@@ -28,6 +28,58 @@ function clearTypewriterTimers() {
 const currentNode = computed(() => store.getters.currentNode)
 const visibleChoices = computed(() => store.getters.visibleChoices)
 const vars = computed(() => store.state.vars)
+const stats = computed(() => store.getters.stats || {})
+
+// --- NOUVELLE FONCTION : Calculer les prérequis manquants ---
+function getMissingReasons(ch) {
+  if (!ch.require || ch.require.length === 0) return ''
+
+  // On récupère les variables actuelles
+  const v = store.state.vars
+
+  // On filtre pour garder uniquement les conditions qui NE SONT PAS remplies
+  const missing = ch.require.filter((req) => {
+    const currentVal = v[req.var]
+
+    switch (req.op) {
+      case '>=':
+        return (Number(currentVal) || 0) < Number(req.value)
+      case '<=':
+        return (Number(currentVal) || 0) > Number(req.value)
+      case '>':
+        return (Number(currentVal) || 0) <= Number(req.value)
+      case '<':
+        return (Number(currentVal) || 0) >= Number(req.value)
+      case '==':
+        return currentVal !== req.value
+      case '!=':
+        return currentVal === req.value
+      case 'includes':
+        return !Array.isArray(currentVal) || !currentVal.includes(req.value)
+      case 'truthy':
+        return !currentVal
+      case 'falsy':
+        return !!currentVal
+      default:
+        return false
+    }
+  })
+
+  // On formate le texte pour l'utilisateur
+  return missing
+    .map((req) => {
+      // Cas spécifiques pour un affichage joli
+      if (req.var === 'inventory' && req.op === 'includes') return `Objet : ${req.value}`
+      if (req.var === 'FOR') return `Force ${req.value}`
+      if (req.var === 'DEX') return `Dextérité ${req.value}`
+      if (req.var === 'INT') return `Intelligence ${req.value}`
+
+      // Fallback générique
+      if (req.op === 'truthy') return `Condition : ${req.var}`
+      return `${req.var} ${req.op.replace('>=', '≥')} ${req.value}`
+    })
+    .join(', ')
+}
 
 // Actions
 function pick(ch) {
@@ -37,46 +89,24 @@ function pick(ch) {
         toast.add({
           severity: 'info',
           summary: 'Nouvel objet',
-          detail: `Tu as reçu ${effect.value} !`,
-          life: 5000,
+          detail: `Tu as reçu : ${effect.value}`,
+          life: 3000,
         })
       }
     }
   }
   store.dispatch('go', { to: ch.to, effects: ch.effects || [] })
-  router.replace({ name: 'node', params: { id: store.state.currentNodeId } })
+  // On met à jour l'URL (optionnel selon ta config router)
+  // router.replace({ name: 'node', params: { id: ch.to } })
 }
 
 function restart() {
   showRestartDialog.value = false
   store.dispatch('restart')
-  router.replace({ name: 'home' })
+  router.replace({ path: '/' }) // ou name: 'home' selon ta config
 }
 
-function load() {
-  store.dispatch('load')
-}
-
-// Réagir au changement d'id (par route) — /#/node/:id
-watch(
-  () => route.params.id,
-  (newId) => {
-    if (!newId) return
-    if (story.nodes[newId]) store.commit('SET_NODE', newId)
-  },
-  { immediate: true }
-)
-
-// Réagir au changement d'id (par prop) — au cas où tu passes :id en props
-watch(
-  () => props.id,
-  (newId) => {
-    if (!newId) return
-    if (story.nodes[newId]) store.commit('SET_NODE', newId)
-  },
-  { immediate: true }
-)
-
+// Watchers pour la navigation et l'effet machine à écrire
 watch(
   () => route.params.id,
   (newId) => {
@@ -100,7 +130,6 @@ watch(
       )
     })
 
-    // Quand tout est affiché, on réactive les choix
     timeouts.push(
       setTimeout(
         () => {
@@ -115,68 +144,119 @@ watch(
 </script>
 
 <template>
-  <main class="max-w-2xl mx-auto p-6">
+  <main class="max-w-2xl mx-auto p-6 flex flex-col min-h-screen">
     <Toast class="!w-2/3" />
-    <!-- <header class="flex items-center justify-end mb-6">
-      <h1 class="text-2xl font-semibold">CYOA</h1>
-      <Button icon="pi pi-moon" severity="contrast" />
-    </header> -->
 
-    <section class="bg-gray-100 rounded p-4 mb-4">
-      <p class="whitespace-pre-line" v-html="shownText"></p>
+    <section class="bg-gray-100 rounded-lg p-6 mb-6 shadow-sm min-h-[150px]">
+      <p class="whitespace-pre-line text-lg leading-relaxed text-gray-800" v-html="shownText"></p>
     </section>
 
-    <ul class="space-y-2 pb-20">
+    <ul class="space-y-3 pb-24 flex-1">
       <li v-for="(ch, idx) in visibleChoices" :key="idx">
         <button
-          class="w-full text-left px-4 py-3 border rounded hover:bg-gray-50 disabled:opacity-50"
+          class="w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-200 relative overflow-hidden group"
+          :class="[
+            ch._enabled
+              ? 'border-gray-200 hover:border-gray-400 hover:bg-gray-50 text-gray-800'
+              : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-80',
+          ]"
           :disabled="typing || ch._enabled === false"
           @click="pick(ch)"
         >
-          {{ ch.text }}
-          <span v-if="ch._enabled === false" class="text-xs text-gray-500">(indisponible)</span>
+          <div class="space-y-2">
+            <div class="font-medium">{{ ch.text }}</div>
+
+            <div
+              v-if="ch._enabled === false"
+              class="text-xs font-semibold text-red-500 bg-red-50 px-2 py-1 rounded border border-red-100 w-auto"
+            >
+              🔒 {{ getMissingReasons(ch) }}
+            </div>
+          </div>
         </button>
       </li>
 
-      <li v-if="currentNode.choices.length === 0">
-        <button class="px-4 py-3 border rounded" @click="restart">Fin — Rejouer</button>
+      <li v-if="currentNode && currentNode.choices.length === 0">
+        <button
+          class="w-full px-5 py-4 border-2 border-black bg-black text-white rounded-lg hover:bg-gray-800 font-bold"
+          @click="restart"
+        >
+          Fin de l'histoire — Rejouer
+        </button>
       </li>
     </ul>
 
-    <div class="fixed bottom-0 px-6 py-4 bg-white w-full border-t -mx-6">
-      <div class="flex justify-between">
-        <Button icon="pi pi-box" @click="showInventory = true" />
-        <Button icon="pi pi-refresh" @click="showRestartDialog = true" severity="contrast" />
-
-        <!-- INVENTORY -->
-        <Drawer v-model:visible="showInventory" header="Inventaire" position="bottom">
-          <InventoryPanel />
-        </Drawer>
-
-        <Dialog
-          v-model:visible="showRestartDialog"
-          modal
-          header="Recommencer"
-          :style="{ width: '25rem', margin: '1.5rem' }"
+    <div
+      class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t shadow-lg px-6 py-4 z-10"
+    >
+      <div class="max-w-2xl mx-auto">
+        <div
+          class="flex justify-between items-center mb-4 text-sm font-bold text-gray-600 bg-gray-100 p-2 rounded-md"
         >
-          <span>Recommencer l'histoire ?</span>
-          <div class="flex justify-end gap-2 mt-8">
-            <Button
-              type="button"
-              label="Annuler"
-              severity="secondary"
-              @click="showRestartDialog = false"
-            ></Button>
-            <Button type="button" label="Recommencer" @click="restart()"></Button>
+          <div class="flex gap-4">
+            <span title="Force">💪 {{ stats.FOR || 0 }}</span>
+            <span title="Dextérité">🏃 {{ stats.DEX || 0 }}</span>
+            <span title="Intelligence">🧠 {{ stats.INT || 0 }}</span>
           </div>
-        </Dialog>
-        <!-- <button class="px-3 py-1 border rounded" @click="load">Charger</button> -->
+
+          <div class="flex gap-1 items-center" v-if="stats.HP !== undefined">
+            <i
+              v-for="n in 5"
+              :key="n"
+              class="pi text-xs"
+              :class="
+                n <= (stats.HP || 0) ? 'pi-heart-fill text-red-500' : 'pi-heart text-gray-300'
+              "
+            >
+            </i>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <Button
+            label="Inventaire"
+            icon="pi pi-briefcase"
+            @click="showInventory = true"
+            severity="secondary"
+            text
+            :badge="vars.inventory?.length ? vars.inventory.length.toString() : null"
+            badgeSeverity="contrast"
+          />
+
+          <Button
+            icon="pi pi-refresh"
+            @click="showRestartDialog = true"
+            severity="danger"
+            text
+            rounded
+            aria-label="Recommencer"
+          />
+        </div>
       </div>
     </div>
 
-    <!-- <aside class="mt-8 text-sm text-gray-600">
-      <h2 class="font-medium mb-1">Variables (debug)</h2>
-      <pre class="bg-white border rounded p-3 overflow-auto">{{ vars }}</pre>
-    </aside> -->
+    <Drawer v-model:visible="showInventory" header="Sacoche" position="bottom" style="height: auto">
+      <InventoryPanel />
+    </Drawer>
+
+    <Dialog
+      v-model:visible="showRestartDialog"
+      modal
+      header="Recommencer l'aventure ?"
+      :style="{ width: '90vw', maxWidth: '400px' }"
+    >
+      <p class="text-gray-600 mb-6">Toute votre progression sera perdue.</p>
+      <div class="flex justify-end gap-2">
+        <Button label="Annuler" severity="secondary" text @click="showRestartDialog = false" />
+        <Button label="Confirmer" severity="danger" @click="restart()" />
+      </div>
+    </Dialog>
   </main>
 </template>
+
+<style scoped>
+/* Ajout d'un petit style pour lisser l'apparition du texte si besoin */
+.whitespace-pre-line {
+  min-height: 1.5em;
+}
+</style>
