@@ -1,6 +1,6 @@
 <template>
-  <aside class="flex flex-col h-full bg-white relative">
-    <div class="p-4 bg-gray-50 border-b">
+  <aside class="flex flex-col h-full max-h-[85vh] bg-white relative">
+    <div class="p-4 bg-gray-50 border-b shrink-0">
       <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
         Vos Caractéristiques
       </h3>
@@ -18,9 +18,9 @@
       </div>
     </div>
 
-    <div class="flex-1 p-4 overflow-y-auto">
+    <div class="flex-1 p-4 overflow-y-auto max-h-[50vh] scroll-smooth">
       <h3
-        class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex justify-between items-center"
+        class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex justify-between items-center sticky -top-4 bg-white z-10 py-3"
       >
         Sacoche
         <span class="text-gray-400 font-normal normal-case text-xs">
@@ -36,7 +36,7 @@
         <p class="text-sm mt-2">Votre sac est vide.</p>
       </div>
 
-      <ul v-else class="grid grid-cols-1 gap-3">
+      <ul v-else class="grid grid-cols-1 gap-3 pb-4">
         <li v-for="item in populatedInventory" :key="item.id">
           <button
             class="w-full flex items-center gap-3 p-3 border-l-4 rounded-lg transition-transform duration-100 bg-white text-left shadow-sm active:scale-[0.98]"
@@ -59,6 +59,9 @@
             <div class="flex flex-col flex-1">
               <span class="font-bold text-sm" :class="getRarityConfig(item.rarity).textClass">
                 {{ item.name }}
+              </span>
+              <span class="text-[10px] uppercase font-semibold text-gray-400 tracking-wider">
+                {{ getRarityConfig(item.rarity).label }}
               </span>
             </div>
 
