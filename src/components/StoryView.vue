@@ -5,6 +5,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { story } from '../data/story'
 import InventoryPanel from '../components/InventoryPanel.vue'
 import { Button, Dialog, Drawer, useToast, Toast } from 'primevue'
+import { itemsDb } from '../data/items'
 
 // Optionnel : si tu utilises la route /node/:id avec props
 const props = defineProps({ id: { type: String, default: null } })
@@ -19,6 +20,7 @@ const speed = 8 // ms par caractères
 const showInventory = ref(false)
 const showRestartDialog = ref(false)
 const toast = useToast()
+const isDamageFlash = ref(false)
 
 function clearTypewriterTimers() {
   while (timeouts.length) clearTimeout(timeouts.pop())
@@ -85,19 +87,22 @@ function getMissingReasons(ch) {
 function pick(ch) {
   if (ch.effects) {
     for (const effect of ch.effects) {
-      if (effect?.var === 'inventory') {
+      if (effect?.var === 'inventory' && effect?.op === 'push') {
+        // On récupère le vrai nom de l'objet via la base de données
+        const itemData = itemsDb[effect.value]
+        const itemName = itemData ? itemData.name : effect.value
+        const itemIcon = itemData ? itemData.icon : ''
+
         toast.add({
-          severity: 'info',
-          summary: 'Nouvel objet',
-          detail: `Tu as reçu : ${effect.value}`,
-          life: 3000,
+          severity: 'success',
+          summary: 'Nouvel objet obtenu',
+          detail: `${itemIcon} ${itemName}`,
+          life: 4000,
         })
       }
     }
   }
   store.dispatch('go', { to: ch.to, effects: ch.effects || [] })
-  // On met à jour l'URL (optionnel selon ta config router)
-  // router.replace({ name: 'node', params: { id: ch.to } })
 }
 
 function restart() {
@@ -141,9 +146,25 @@ watch(
   },
   { immediate: true }
 )
+
+// Watcher pour détecter la baisse de HP
+watch(
+  () => stats.value.HP,
+  (newHP, oldHP) => {
+    if (newHP < oldHP) {
+      isDamageFlash.value = true
+      // On retire l'effet après 500ms (durée de l'animation)
+      setTimeout(() => {
+        isDamageFlash.value = false
+      }, 500)
+    }
+  }
+)
 </script>
 
 <template>
+  <div v-if="isDamageFlash" class="damage-flash-overlay"></div>
+
   <main class="max-w-2xl mx-auto p-6 flex flex-col min-h-screen">
     <Toast class="!w-2/3" />
 
@@ -191,25 +212,29 @@ watch(
     >
       <div class="max-w-2xl mx-auto">
         <div
-          class="flex justify-between items-center mb-4 text-sm font-bold text-gray-600 bg-gray-100 p-2 rounded-md"
+          class="flex justify-between items-center mb-4 text-sm font-bold p-2 rounded-md transition-all duration-300"
+          :class="[
+            stats.HP < 5
+              ? 'bg-red-100 text-red-700 animate-pulse-slow shadow-lg'
+              : 'bg-gray-100 text-gray-600',
+          ]"
         >
-          <div class="flex gap-4">
-            <span title="Force">💪 {{ stats.FOR || 0 }}</span>
-            <span title="Dextérité">🏃 {{ stats.DEX || 0 }}</span>
-            <span title="Intelligence">🧠 {{ stats.INT || 0 }}</span>
-          </div>
-
           <div class="flex gap-1 items-center" v-if="stats.HP !== undefined">
             <i
-              v-for="n in 5"
+              v-for="n in 10"
               :key="n"
-              class="pi text-xs"
-              :class="
-                n <= (stats.HP || 0) ? 'pi-heart-fill text-red-500' : 'pi-heart text-gray-300'
-              "
+              class="pi text-xs transition-transform duration-200"
+              :class="[
+                // Coeur plein vs vide
+                n <= (stats.HP || 0) ? 'pi-heart-fill text-red-500' : 'pi-heart text-gray-300',
+                // Animation si HP bas et coeur plein
+                { 'animate-pulse': stats.HP < 5 && n <= stats.HP },
+              ]"
             >
             </i>
           </div>
+
+          <div :class="{ 'animate-bounce': stats.HP < 5 }">{{ stats.HP }} / 10</div>
         </div>
 
         <div class="flex justify-between items-center">
@@ -235,7 +260,12 @@ watch(
       </div>
     </div>
 
-    <Drawer v-model:visible="showInventory" header="Sacoche" position="bottom" style="height: auto">
+    <Drawer
+      v-model:visible="showInventory"
+      header="Inventaire"
+      position="bottom"
+      style="height: auto"
+    >
       <InventoryPanel />
     </Drawer>
 
@@ -255,8 +285,49 @@ watch(
 </template>
 
 <style scoped>
+/* L'overlay du flash */
+.damage-flash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none; /* Laisse passer les clics */
+  box-shadow: inset 0 0 60px rgba(220, 38, 38, 0.8); /* Rouge intense sur les bords */
+  animation: flash-animation 0.5s ease-out forwards;
+}
+
+@keyframes flash-animation {
+  0% {
+    opacity: 0;
+    box-shadow: inset 0 0 20px rgba(220, 38, 38, 0);
+  }
+  20% {
+    opacity: 1;
+    box-shadow: inset 0 0 100px rgba(220, 38, 38, 1);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: inset 0 0 40px rgba(220, 38, 38, 0);
+  }
+}
+
 /* Ajout d'un petit style pour lisser l'apparition du texte si besoin */
 .whitespace-pre-line {
   min-height: 1.5em;
+}
+/* Animation douce pour le pulse des HP bas */
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 2s infinite;
 }
 </style>

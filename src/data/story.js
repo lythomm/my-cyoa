@@ -29,24 +29,20 @@ export const story = {
         "Dans la pénombre de la chaumière, votre grand-mère, Mamia, respire difficilement. Elle vous tend un collier argenté orné d'une pierre en forme de goutte. La pierre pulse d'une lumière chaude.",
       choices: [
         {
-          text: 'Prendre le collier avec délicatesse (Empathie)',
+          text: 'Prendre le collier avec délicatesse',
           to: 'mamia_mission',
           effects: [
+            { var: 'inventory', op: 'push', value: 'necklace' },
             { var: 'INT', op: 'add', value: 1 },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
-            { var: 'HP', op: 'dec' },
           ],
         },
         {
-          text: 'Serrer sa main fermement (Promesse)',
+          text: 'Serrer sa main fermement',
           to: 'mamia_mission',
-          effects: [{ var: 'FOR', op: 'add', value: 1 }],
+          effects: [
+            { var: 'FOR', op: 'add', value: 1 },
+            { var: 'inventory', op: 'push', value: 'necklace' },
+          ],
         },
       ],
     },
@@ -95,17 +91,17 @@ export const story = {
       text: 'Avant de franchir la porte du village, vous pouvez emporter un objet supplémentaire dans votre sac.',
       choices: [
         {
-          text: "Une corde solide (Utile pour l'escalade)",
+          text: 'Une corde solide',
           to: 'crossroads',
           effects: [{ var: 'inventory', op: 'push', value: 'corde' }],
         },
         {
-          text: 'Des herbes de soin (Utile pour les blessures)',
+          text: 'Des herbes de soin',
           to: 'crossroads',
           effects: [{ var: 'inventory', op: 'push', value: 'herbes' }],
         },
         {
-          text: 'Un vieux grimoire sur la faune (Savoir)',
+          text: 'Un vieux grimoire sur la faune',
           to: 'crossroads',
           effects: [{ var: 'inventory', op: 'push', value: 'grimoire' }],
         },
@@ -116,8 +112,8 @@ export const story = {
       id: 'crossroads',
       text: "Vous quittez Val-Clair. La montagne se dresse au loin, immense. Deux chemins s'offrent à vous pour atteindre le pied des falaises.",
       choices: [
-        { text: 'La Forêt des Ombres (Dangereuse mais directe)', to: 'forest_entry' },
-        { text: 'Le Sentier des Vents (Vertigineux et technique)', to: 'cliffs_entry' },
+        { text: 'La Forêt des Ombres', to: 'forest_entry' },
+        { text: 'Le Sentier des Vents', to: 'cliffs_entry' },
       ],
     },
 
@@ -130,16 +126,16 @@ export const story = {
       text: "La forêt est dense. Des champignons bioluminescents éclairent le chemin. Vous entendez des gémissements venant d'un fourré. Un louveteau de pierre est coincé sous un tronc.",
       choices: [
         {
-          text: 'Soulever le tronc (FOR > 0)',
+          text: 'Soulever le tronc',
           to: 'save_wolf',
           require: [{ var: 'FOR', op: '>=', value: 1 }],
         },
         {
-          text: 'Utiliser la lance comme levier (INT > 0)',
+          text: 'Utiliser la lance comme levier',
           to: 'save_wolf',
           require: [{ var: 'INT', op: '>=', value: 1 }],
         },
-        { text: "L'ignorer et continuer (Prudence)", to: 'wolf_ambush' },
+        { text: "L'ignorer et continuer", to: 'wolf_ambush' },
       ],
     },
 
@@ -160,17 +156,17 @@ export const story = {
       text: "Plus loin, une meute de Loups de Pierre surgit des ombres ! Ils grognent, prêts à bondir. L'Alpha est énorme.",
       choices: [
         {
-          text: "Affronter l'Alpha en duel (FOR 3+)",
+          text: "Affronter l'Alpha en duel",
           to: 'combat_victory',
           require: [{ var: 'FOR', op: '>=', value: 3 }],
         },
         {
-          text: "Grimper à un arbre et les piquer d'en haut (DEX 2+)",
+          text: "Grimper à un arbre et les piquer d'en haut",
           to: 'combat_victory',
           require: [{ var: 'DEX', op: '>=', value: 2 }],
         },
         {
-          text: 'Lire leur comportement et les intimider (Grimoire requis)',
+          text: 'Lire leur comportement et les intimider',
           to: 'combat_victory',
           require: [{ var: 'inventory', op: 'includes', value: 'grimoire' }],
         },
@@ -190,17 +186,17 @@ export const story = {
       text: 'Le vent souffle fort. Le chemin est étroit. Devant vous, un ravin de dix mètres. Le pont a été détruit.',
       choices: [
         {
-          text: 'Sauter par-dessus le vide (DEX 3+)',
+          text: 'Sauter par-dessus le vide',
           to: 'ravine_success',
           require: [{ var: 'DEX', op: '>=', value: 3 }],
         },
         {
-          text: 'Lancer la corde et se balancer (Corde requise)',
+          text: 'Lancer la corde et se balancer',
           to: 'ravine_success',
           require: [{ var: 'inventory', op: 'includes', value: 'corde' }],
         },
         {
-          text: 'Chercher un autre passage (INT 2+)',
+          text: 'Chercher un autre passage',
           to: 'ravine_detour',
           require: [{ var: 'INT', op: '>=', value: 2 }],
         },
@@ -283,7 +279,7 @@ export const story = {
       text: "Vous tenez la pierre. Elle pulse... Boum... Boum... \n\nSoudain, la lumière vacille. Une fois. Deux fois. Et s'éteint. La pierre devient froide et grise, comme morte.",
       choices: [
         {
-          text: 'Hurler de rage et frapper le mur (Réaction FOR)',
+          text: 'Hurler de rage et frapper le mur',
           to: 'grief_anger',
           effects: [
             { var: 'FOR', op: 'add', value: 1 },
@@ -291,7 +287,7 @@ export const story = {
           ],
         },
         {
-          text: 'Pleurer en silence (Réaction INT)',
+          text: 'Pleurer en silence',
           to: 'grief_sadness',
           effects: [
             { var: 'INT', op: 'add', value: 1 },
@@ -322,27 +318,27 @@ export const story = {
       text: "Vous sortez de la grotte. Le sommet est là. Mais un Griffon Cendré garde l'accès. Il est gigantesque.",
       choices: [
         {
-          text: 'Attaquer frontalement (FOR 4+)',
+          text: 'Attaquer frontalement',
           to: 'griffin_fight',
           require: [{ var: 'FOR', op: '>=', value: 4 }],
         },
         {
-          text: "Utiliser l'environnement pour l'aveugler (INT 4+)",
+          text: "Utiliser l'environnement pour l'aveugler",
           to: 'griffin_smart',
           require: [{ var: 'INT', op: '>=', value: 4 }],
         },
         {
-          text: 'Esquiver ses coups et courir (DEX 4+)',
+          text: 'Esquiver ses coups et courir',
           to: 'griffin_dodge',
           require: [{ var: 'DEX', op: '>=', value: 4 }],
         },
         {
-          text: 'Montrer le collier éteint (Si vous avez sauvé le loup)',
+          text: 'Montrer le collier éteint',
           to: 'griffin_peace',
           require: [{ var: 'wolfCompanion', op: 'truthy' }],
         },
         {
-          text: 'Tenter le tout pour le tout (Risqué)',
+          text: 'Tenter le tout pour le tout',
           to: 'griffin_struggle',
         },
       ],
@@ -395,11 +391,11 @@ export const story = {
       text: 'Vous comprenez que la fleur ne ramènera pas les morts. Elle préserve le souvenir. Que faites-vous ?',
       choices: [
         {
-          text: 'Cueillir la fleur pour la tombe (Tradition)',
+          text: 'Cueillir la fleur pour la tombe',
           to: 'ending_tradition',
         },
         {
-          text: 'Laisser la fleur et déposer le collier ici (Acceptation)',
+          text: 'Laisser la fleur et déposer le collier ici',
           to: 'ending_acceptance',
         },
       ],
